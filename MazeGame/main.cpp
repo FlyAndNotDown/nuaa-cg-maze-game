@@ -8,13 +8,13 @@
 #define WINDOW_SIZE_HEIGHT 600
 
 // 定义颜色
-Color white, gray;
+Color white, gray, green;
 // 定义地图
 Map map;
 // 定义灯光
 Light sunLight;
 // 定义方块的材质
-Material cubeMaterial;
+Material cubeMaterial, playerCubeMaterial;
 // 玩家
 Player player;
 // 摄像机
@@ -25,6 +25,8 @@ MapPosition startPosition, endPosition;
 ViewMode viewMode;
 // 鼠标初始位置
 Vector2f mousePosition;
+// 玩家人物方块
+Cube playerCube;
 
 void xyzToVertex(Vertex &vertex, float x, float y, float z) {
 	vertex.x = x;
@@ -119,6 +121,10 @@ void init() {
 	gray.r = 0.3f;
 	gray.g = 0.3f;
 	gray.b = 0.3f;
+	// 绿色
+	green.r = 0.4f;
+	green.g = 1.0f;
+	green.b = 0.6f;
 
 	// 加载第一张地图
 	map.width = MAP1_WIDTH;
@@ -163,6 +169,23 @@ void init() {
 	cubeMaterial.emission[2] = white.b;
 	cubeMaterial.emission[3] = 0;
 	cubeMaterial.shininess = 20;
+	playerCubeMaterial.ambient[0] = 0.0f;
+	playerCubeMaterial.ambient[1] = 0.0f;
+	playerCubeMaterial.ambient[2] = 0.5f;
+	playerCubeMaterial.ambient[3] = 1.0f;
+	playerCubeMaterial.diffuse[0] = 0.0f;
+	playerCubeMaterial.diffuse[1] = 0.0f;
+	playerCubeMaterial.diffuse[2] = 0.5f;
+	playerCubeMaterial.diffuse[3] = 1.0f;
+	playerCubeMaterial.specular[0] = 0.0f;
+	playerCubeMaterial.specular[1] = 0.0f;
+	playerCubeMaterial.specular[2] = 0.8f;
+	playerCubeMaterial.specular[3] = 1.0f;
+	playerCubeMaterial.emission[0] = green.r;
+	playerCubeMaterial.emission[1] = green.g;
+	playerCubeMaterial.emission[2] = green.b;
+	playerCubeMaterial.emission[3] = 0;
+	playerCubeMaterial.shininess = 20;
 
 	// 寻找起点和终点
 	for (int i = 0; i < map.width; i++) {
@@ -201,7 +224,7 @@ void init() {
 	mousePosition.y = 0.0f;
 }
 
-void drawCube(Cube cube) {
+void drawCube(Cube cube, Color cubeColor, Material material) {
 	// 计算出方块的八个顶点坐标
 	Vertex vertexes[8];
 	xyzToVertex(vertexes[0], cube.x, cube.y, cube.z);
@@ -223,14 +246,14 @@ void drawCube(Cube cube) {
 	vertexesToQuad(quads[5], vertexes[4], vertexes[5], vertexes[6], vertexes[7]);
 
 	// 使用颜色
-	glColor3f(white.r, white.g, white.b);
+	glColor3f(cubeColor.r, cubeColor.g, cubeColor.b);
 
 	// 使用材质
-	glMaterialfv(GL_FRONT, GL_AMBIENT, cubeMaterial.ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, cubeMaterial.diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, cubeMaterial.specular);
-	glMaterialfv(GL_FRONT, GL_EMISSION, cubeMaterial.emission);
-	glMaterialfv(GL_FRONT, GL_SHININESS, &cubeMaterial.shininess);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, material.ambient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, material.diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
+	glMaterialfv(GL_FRONT, GL_EMISSION, material.emission);
+	glMaterialfv(GL_FRONT, GL_SHININESS, &material.shininess);
 
 	// 开始绘制
 	for (int i = 0; i < 6; i++) {
@@ -251,7 +274,7 @@ void drawMaze(Map map) {
 				cube.x = j * cube.size;
 				cube.y = map.height * cube.size - (i + 1) * cube.size;
 				cube.z = 0;
-				drawCube(cube);
+				drawCube(cube, white, cubeMaterial);
 			}
 		}
 	}
@@ -304,6 +327,13 @@ void render() {
 
 	// 绘制迷宫
 	drawMaze(map);
+	
+	// 根据玩家位置来绘制玩家方块
+	playerCube.x = player.y * MAP_BLOCK_LENGTH + MAP_BLOCK_LENGTH / 2 - PLAYER_CUBE_SIZE / 2;
+	playerCube.y = map.height * MAP_BLOCK_LENGTH - player.x * MAP_BLOCK_LENGTH - MAP_BLOCK_LENGTH / 2 - PLAYER_CUBE_SIZE / 2;
+	playerCube.z = 0;
+	playerCube.size = PLAYER_CUBE_SIZE;
+	drawCube(playerCube, green, playerCubeMaterial);
 
 	// 交换前后台缓存
 	glutSwapBuffers();

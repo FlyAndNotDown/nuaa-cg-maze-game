@@ -92,6 +92,8 @@ struct Player {
 #define PLAYER_FACE_DOWN 1
 #define PLAYER_FACE_LEFT 2
 #define PLAYER_FACE_RIGHT 3
+// 玩家方块大小
+#define PLAYER_CUBE_SIZE MAP_BLOCK_LENGTH / 4
 
 
 // 方块
@@ -122,7 +124,7 @@ struct Camare {
 };
 // 视角步长
 #define VIEW_STEP_LENGTH_XY 1 / 3
-#define VIEW_STEP_LENGTH_Z 1 / 8
+#define VIEW_STEP_LENGTH_Z 1 / 10
 // 全局摄像机参数
 #define GLOBAL_CAMARE_POSITION_X 200
 #define GLOBAL_CAMARE_POSITION_Y 0
