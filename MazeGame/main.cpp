@@ -292,6 +292,13 @@ void drawCube(Cube cube, bool isPlayer) {
 		// 使用绿色
 		glColor3f(green.r, green.g, green.b);
 
+		// 使用玩家材质
+		glMaterialfv(GL_FRONT, GL_AMBIENT, playerCubeMaterial.ambient);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, playerCubeMaterial.diffuse);
+		glMaterialfv(GL_FRONT, GL_SPECULAR, playerCubeMaterial.specular);
+		glMaterialfv(GL_FRONT, GL_EMISSION, playerCubeMaterial.emission);
+		glMaterialfv(GL_FRONT, GL_SHININESS, &playerCubeMaterial.shininess);
+
 		for (int i = 0; i < 6; i++) {
 			glBegin(GL_POLYGON);
 			for (int j = 0; j < 4; j++) {
@@ -302,6 +309,13 @@ void drawCube(Cube cube, bool isPlayer) {
 	} else {
 		// 使用白色
 		glColor3f(white.r, white.g, white.b);
+
+		// 使用墙面材质
+		glMaterialfv(GL_FRONT, GL_AMBIENT, cubeMaterial.ambient);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, cubeMaterial.diffuse);
+		glMaterialfv(GL_FRONT, GL_SPECULAR, cubeMaterial.specular);
+		glMaterialfv(GL_FRONT, GL_EMISSION, cubeMaterial.emission);
+		glMaterialfv(GL_FRONT, GL_SHININESS, &cubeMaterial.shininess);
 
 		// 使用纹理
 		glEnable(GL_TEXTURE_2D);
@@ -383,14 +397,14 @@ void render() {
 	loadTexture(wall);
 
 	// 设置光照
-	//glLightfv(GL_LIGHT0, GL_POSITION, sunLight.position);
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, sunLight.ambient);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, sunLight.diffuse);
-	//glLightfv(GL_LIGHT0, GL_SPECULAR, sunLight.specular);
-	//// 使用 0 号光源
-	//glEnable(GL_LIGHT0);
-	//// 在之后的渲染中使用该光照
-	//glEnable(GL_LIGHTING);
+	glLightfv(GL_LIGHT0, GL_POSITION, sunLight.position);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, sunLight.ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunLight.diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, sunLight.specular);
+	// 使用 0 号光源
+	glEnable(GL_LIGHT0);
+	// 在之后的渲染中使用该光照
+	glEnable(GL_LIGHTING);
 	
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
