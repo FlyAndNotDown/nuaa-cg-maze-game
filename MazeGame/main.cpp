@@ -1,11 +1,9 @@
 #include <GL\glut.h>
+#include <opencv2\core\core.hpp>
+#include <opencv2\highgui\highgui.hpp>
+#include <opencv2\imgproc\imgproc.hpp>
+using namespace cv;
 #include "define.h"
-
-// 窗口常量
-#define WINDOW_POSITION_X 100
-#define WINDOW_POSITION_Y 100
-#define WINDOW_SIZE_WIDTH 600
-#define WINDOW_SIZE_HEIGHT 600
 
 // 定义颜色
 Color white, gray, green;
@@ -27,19 +25,24 @@ ViewMode viewMode;
 Vector2f mousePosition;
 // 玩家人物方块
 Cube playerCube;
+// 墙壁贴图
+Texture wall;
 
+// xyz 存入顶点结构体
 void xyzToVertex(Vertex &vertex, float x, float y, float z) {
 	vertex.x = x;
 	vertex.y = y;
 	vertex.z = z;
 }
 
+// 拷贝顶点结构体
 void vertexToVertex(Vertex &det, Vertex src) {
 	det.x = src.x;
 	det.y = src.y;
 	det.z = src.z;
 }
 
+// 四个顶点存入面结构体
 void vertexesToQuad(Quad4 &quad, Vertex vertex0, Vertex vertex1, Vertex vertex2, Vertex vertex3) {
 	vertexToVertex(quad.vertexes[0], vertex0);
 	vertexToVertex(quad.vertexes[1], vertex1);
@@ -47,24 +50,28 @@ void vertexesToQuad(Quad4 &quad, Vertex vertex0, Vertex vertex1, Vertex vertex2,
 	vertexToVertex(quad.vertexes[3], vertex3);
 }
 
+// 设置摄像机位置
 void setCamarePosition(Camare &camare, GLfloat x, GLfloat y, GLfloat z) {
 	camare.position[0] = x;
 	camare.position[1] = y;
 	camare.position[2] = z;
 }
 
+// 设置摄像机朝向
 void setCamareLookAt(Camare &camare, GLfloat x, GLfloat y, GLfloat z) {
 	camare.lookAt[0] = x;
 	camare.lookAt[1] = y;
 	camare.lookAt[2] = z;
 }
 
+// 设置摄像机旋转
 void setCamareDirection(Camare &camare, GLfloat x, GLfloat y, GLfloat z) {
 	camare.direction[0] = x;
 	camare.direction[1] = y;
 	camare.direction[2] = z;
 }
 
+// 根据既有信息修改第一人称摄像机
 void setFristPersonCamareByPlayer() {
 	// 更新摄像机位置
 	setCamarePosition(
@@ -110,6 +117,23 @@ void setFristPersonCamareByPlayer() {
 	}
 	// 设置摄像机上方正方向
 	setCamareDirection(fristPersonCamare, 0, 0, 1);
+}
+
+// 将图像数据转换成纹理贴图信息
+void loadTexture(Texture &texture) {
+	// 构造跟正方体所有面数相等同的贴图数量
+	texture.id;
+
+	// 将 textureId 设置为 2d 纹理信息
+	glGenTextures(map.width * map.height * 6, &texture.id);
+	glBindTexture(GL_TEXTURE_2D, texture.id);
+
+	//纹理放大缩小使用线性插值
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// 将图像内存用作纹理信息
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, texture.img.data);
 }
 
 void init() {
@@ -187,6 +211,13 @@ void init() {
 	playerCubeMaterial.emission[3] = 0;
 	playerCubeMaterial.shininess = 20;
 
+	// 初始化贴图
+	// 载入墙面贴图图片
+	wall.img = imread(".\\texture.bmp");
+	// 设置长宽
+	wall.width = wall.img.cols;
+	wall.height = wall.img.rows;
+
 	// 寻找起点和终点
 	for (int i = 0; i < map.width; i++) {
 		for (int j = 0; j < map.height; j++) {
@@ -224,7 +255,7 @@ void init() {
 	mousePosition.y = 0.0f;
 }
 
-void drawCube(Cube cube, Color cubeColor, Material material) {
+void drawCube(Cube cube, bool isPlayer) {
 	// 计算出方块的八个顶点坐标
 	Vertex vertexes[8];
 	xyzToVertex(vertexes[0], cube.x, cube.y, cube.z);
@@ -239,29 +270,67 @@ void drawCube(Cube cube, Color cubeColor, Material material) {
 	// 计算出方块的六个面
 	Quad4 quads[6];
 	vertexesToQuad(quads[0], vertexes[0], vertexes[1], vertexes[2], vertexes[3]);
-	vertexesToQuad(quads[1], vertexes[0], vertexes[1], vertexes[4], vertexes[5]);
+	vertexesToQuad(quads[1], vertexes[0], vertexes[1], vertexes[5], vertexes[4]);
 	vertexesToQuad(quads[2], vertexes[2], vertexes[3], vertexes[7], vertexes[6]);
 	vertexesToQuad(quads[3], vertexes[1], vertexes[2], vertexes[6], vertexes[5]);
 	vertexesToQuad(quads[4], vertexes[0], vertexes[3], vertexes[7], vertexes[4]);
 	vertexesToQuad(quads[5], vertexes[4], vertexes[5], vertexes[6], vertexes[7]);
 
-	// 使用颜色
-	glColor3f(cubeColor.r, cubeColor.g, cubeColor.b);
+	//// 使用颜色
+	//glColor3f(cubeColor.r, cubeColor.g, cubeColor.b);
 
-	// 使用材质
-	glMaterialfv(GL_FRONT, GL_AMBIENT, material.ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, material.diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
-	glMaterialfv(GL_FRONT, GL_EMISSION, material.emission);
-	glMaterialfv(GL_FRONT, GL_SHININESS, &material.shininess);
+	//// 使用材质
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, material.ambient);
+	//glMaterialfv(GL_FRONT, GL_DIFFUSE, material.diffuse);
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
+	//glMaterialfv(GL_FRONT, GL_EMISSION, material.emission);
+	//glMaterialfv(GL_FRONT, GL_SHININESS, &material.shininess);
 
-	// 开始绘制
-	for (int i = 0; i < 6; i++) {
-		glBegin(GL_QUADS);
-		for (int j = 0; j < 4; j++) {
-			glVertex3f(quads[i].vertexes[j].x, quads[i].vertexes[j].y, quads[i].vertexes[j].z);
+	
+	// 如果是玩家
+	if (isPlayer) {
+		// 使用绿色
+		glColor3f(green.r, green.g, green.b);
+
+		for (int i = 0; i < 6; i++) {
+			glBegin(GL_POLYGON);
+			for (int j = 0; j < 4; j++) {
+				glVertex3f(quads[i].vertexes[j].x, quads[i].vertexes[j].y, quads[i].vertexes[j].z);
+			}
+			glEnd();
 		}
-		glEnd();
+	} else {
+		// 使用白色
+		glColor3f(white.r, white.g, white.b);
+
+		// 使用纹理
+		glEnable(GL_TEXTURE_2D);
+		// 开始绘制
+		for (int i = 0; i < 6; i++) {
+			// 使用纹理
+			glBindTexture(GL_TEXTURE_2D, wall.id);
+			glBegin(GL_POLYGON);
+			/* for (int j = 0; j < 4; j++) {
+			glVertex3f(quads[i].vertexes[j].x, quads[i].vertexes[j].y, quads[i].vertexes[j].z);
+			}*/
+
+			// 纹理左下角
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(quads[i].vertexes[0].x, quads[i].vertexes[0].y, quads[i].vertexes[0].z);
+			// 纹理右下角
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(quads[i].vertexes[1].x, quads[i].vertexes[1].y, quads[i].vertexes[1].z);
+			// 纹理右上角
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(quads[i].vertexes[2].x, quads[i].vertexes[2].y, quads[i].vertexes[2].z);
+			// 纹理左上角
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(quads[i].vertexes[3].x, quads[i].vertexes[3].y, quads[i].vertexes[3].z);
+
+			glEnd();
+		}
+		// 关闭纹理
+		glDisable(GL_TEXTURE_2D);
 	}
 }
 
@@ -274,7 +343,7 @@ void drawMaze(Map map) {
 				cube.x = j * cube.size;
 				cube.y = map.height * cube.size - (i + 1) * cube.size;
 				cube.z = 0;
-				drawCube(cube, white, cubeMaterial);
+				drawCube(cube, false);
 			}
 		}
 	}
@@ -289,7 +358,6 @@ void render() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45, 1, 1, 10000);
-	
 	// 设置模型视景矩阵
 	switch (viewMode) {
 		// 如果是全局视角的话
@@ -312,16 +380,18 @@ void render() {
 			break;
 	}
 
-	// 设置光照
-	glLightfv(GL_LIGHT0, GL_POSITION, sunLight.position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, sunLight.ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunLight.diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, sunLight.specular);
-	// 使用 0 号光源
-	glEnable(GL_LIGHT0);
-	// 在之后的渲染中使用该光照
-	glEnable(GL_LIGHTING);
+	loadTexture(wall);
 
+	// 设置光照
+	//glLightfv(GL_LIGHT0, GL_POSITION, sunLight.position);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, sunLight.ambient);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, sunLight.diffuse);
+	//glLightfv(GL_LIGHT0, GL_SPECULAR, sunLight.specular);
+	//// 使用 0 号光源
+	//glEnable(GL_LIGHT0);
+	//// 在之后的渲染中使用该光照
+	//glEnable(GL_LIGHTING);
+	
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
@@ -333,7 +403,7 @@ void render() {
 	playerCube.y = map.height * MAP_BLOCK_LENGTH - player.x * MAP_BLOCK_LENGTH - MAP_BLOCK_LENGTH / 2 - PLAYER_CUBE_SIZE / 2;
 	playerCube.z = 0;
 	playerCube.size = PLAYER_CUBE_SIZE;
-	drawCube(playerCube, green, playerCubeMaterial);
+	drawCube(playerCube, true);
 
 	// 交换前后台缓存
 	glutSwapBuffers();

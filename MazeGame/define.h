@@ -113,7 +113,7 @@ struct Vertex {
 };
 // 面
 struct Quad4 {
-	Vertex vertexes[8];
+	Vertex vertexes[4];
 };
 
 // 摄像机
@@ -123,8 +123,8 @@ struct Camare {
 	GLfloat direction[3];
 };
 // 视角步长
-#define VIEW_STEP_LENGTH_XY 1 / 3
-#define VIEW_STEP_LENGTH_Z 1 / 10
+#define VIEW_STEP_LENGTH_XY 40 / 81
+#define VIEW_STEP_LENGTH_Z 1 / 15
 // 全局摄像机参数
 #define GLOBAL_CAMARE_POSITION_X 200
 #define GLOBAL_CAMARE_POSITION_Y 0
@@ -140,4 +140,15 @@ struct Camare {
 struct Vector2f {
 	GLfloat x;
 	GLfloat y;
+};
+
+// 贴图
+struct Texture {
+	Mat img;
+	GLint width;
+	GLint height;
+	// 图像指针
+	GLubyte *pixels;
+	// id
+	GLuint id;
 };
