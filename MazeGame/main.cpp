@@ -269,10 +269,6 @@ void init() {
 
 	// 初始化第一人称摄像机
 	setFristPersonCamareByPlayer();
-
-	// 初始化鼠标位置
-	mousePosition.x = 0.0f;
-	mousePosition.y = 0.0f;
 }
 
 // 绘制方块
@@ -670,7 +666,7 @@ int main(int argc, char *argv[]) {
 	// 设置渲染函数
 	glutDisplayFunc(render);
 	
-	// 鼠标键盘响应
+	// 键盘响应
 	glutSpecialFunc(onSpecialKeyDown);
 
 	// 开启主循环
