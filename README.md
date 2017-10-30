@@ -3,7 +3,7 @@
 一个 OpenGL 写的迷宫小游戏，计算机图形学课程设计，作者：黄文麒、贺星宇、庄锦城
 
 ## 怎么使用
-首先，克隆 git 仓库
+首先，克隆我们这个游戏的 git 仓库
 ```
 git clone https://github.com/FlyAndNotDown/MazeGame.git
 ```
