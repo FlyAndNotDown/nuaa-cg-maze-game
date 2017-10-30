@@ -23,8 +23,6 @@ Camare fristPersonCamare, globalCamare;
 MapPosition startPosition, endPosition;
 // 视图模式
 ViewMode viewMode;
-// 鼠标初始位置
-Vector2f mousePosition;
 // 玩家人物方块
 Cube playerCube;
 // 墙壁贴图
