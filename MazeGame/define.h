@@ -66,6 +66,20 @@ const GLint MAP1_BLOCKS[MAP1_WIDTH][MAP1_HEIGHT] = {
 	1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
 	1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
+const GLint MAP2_WIDTH = 10;
+const GLint MAP2_HEIGHT = 10;
+const GLint MAP2_BLOCKS[MAP2_WIDTH][MAP2_HEIGHT] = {
+	1, 1, 1, 3, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 0, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 0, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 1, 0, 1, 0, 1, 0, 1, 1, 1,
+	1, 0, 0, 1, 0, 1, 0, 0, 0, 1,
+	1, 0, 1, 1, 0, 0, 0, 1, 1, 1,
+	1, 2, 1, 1, 1, 1, 1, 1, 1, 1
+};
 // 地图位置
 struct MapPosition {
 	GLint x;
@@ -140,6 +154,19 @@ struct Camare {
 struct Vector2f {
 	GLfloat x;
 	GLfloat y;
+};
+
+// 二维 double 向量
+struct Vector2d {
+	GLdouble x;
+	GLdouble y;
+};
+
+// 三维 double 向量
+struct Vector3d {
+	GLdouble x;
+	GLdouble y;
+	GLdouble z;
 };
 
 // 贴图

@@ -13,6 +13,8 @@ Map map;
 Light sunLight;
 // 定义方块的材质
 Material cubeMaterial, playerCubeMaterial;
+// 恭喜图案的材质
+Material completeMaterial;
 // 玩家
 Player player;
 // 摄像机
@@ -26,7 +28,7 @@ Vector2f mousePosition;
 // 玩家人物方块
 Cube playerCube;
 // 墙壁贴图
-Texture wall;
+Texture wall, complete;
 
 // xyz 存入顶点结构体
 void xyzToVertex(Vertex &vertex, float x, float y, float z) {
@@ -121,11 +123,8 @@ void setFristPersonCamareByPlayer() {
 
 // 将图像数据转换成纹理贴图信息
 void loadTexture(Texture &texture) {
-	// 构造跟正方体所有面数相等同的贴图数量
-	texture.id;
-
 	// 将 textureId 设置为 2d 纹理信息
-	glGenTextures(map.width * map.height * 6, &texture.id);
+	glGenTextures(1, &texture.id);
 	glBindTexture(GL_TEXTURE_2D, texture.id);
 
 	//纹理放大缩小使用线性插值
@@ -136,6 +135,7 @@ void loadTexture(Texture &texture) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, texture.img.data);
 }
 
+// 初始化
 void init() {
 	// 白色
 	white.r = 1.0f;
@@ -150,12 +150,12 @@ void init() {
 	green.g = 1.0f;
 	green.b = 0.6f;
 
-	// 加载第一张地图
-	map.width = MAP1_WIDTH;
-	map.height = MAP1_HEIGHT;
+	// 加载第二张地图
+	map.width = MAP2_WIDTH;
+	map.height = MAP2_HEIGHT;
 	for (int i = 0; i < map.width; i++)
 		for (int j = 0; j < map.height; j++)
-			map.blocks[i][j] = MAP1_BLOCKS[i][j];
+			map.blocks[i][j] = MAP2_BLOCKS[i][j];
 
 	// 设置阳光参数
 	sunLight.position[0] = 0.0f;
@@ -210,6 +210,24 @@ void init() {
 	playerCubeMaterial.emission[2] = green.b;
 	playerCubeMaterial.emission[3] = 0;
 	playerCubeMaterial.shininess = 20;
+	// 完成图案材质
+	completeMaterial.ambient[0] = 0.0f;
+	completeMaterial.ambient[1] = 0.0f;
+	completeMaterial.ambient[2] = 0.5f;
+	completeMaterial.ambient[3] = 1.0f;
+	completeMaterial.diffuse[0] = 0.0f;
+	completeMaterial.diffuse[1] = 0.0f;
+	completeMaterial.diffuse[2] = 0.5f;
+	completeMaterial.diffuse[3] = 1.0f;
+	completeMaterial.specular[0] = 0.0f;
+	completeMaterial.specular[1] = 0.0f;
+	completeMaterial.specular[2] = 0.8f;
+	completeMaterial.specular[3] = 1.0f;
+	completeMaterial.emission[0] = white.r;
+	completeMaterial.emission[1] = white.g;
+	completeMaterial.emission[2] = white.b;
+	completeMaterial.emission[3] = 0;
+	completeMaterial.shininess = 20;
 
 	// 初始化贴图
 	// 载入墙面贴图图片
@@ -217,6 +235,10 @@ void init() {
 	// 设置长宽
 	wall.width = wall.img.cols;
 	wall.height = wall.img.rows;
+	// 载入通关图片
+	complete.img = imread(".\\complete.jpg");
+	complete.width = complete.img.cols;
+	complete.height = complete.img.rows;
 
 	// 寻找起点和终点
 	for (int i = 0; i < map.width; i++) {
@@ -240,7 +262,7 @@ void init() {
 	player.face = PLAYER_FACE_UP;
 	
 	// 设置视图模式
-	viewMode = VIEW_MODE_GLOBAL;
+	viewMode = VIEW_MODE_FRIST_PERSON;
 
 	// 初始化全局摄像机
 	setCamarePosition(globalCamare, GLOBAL_CAMARE_POSITION_X, GLOBAL_CAMARE_POSITION_Y, GLOBAL_CAMARE_POSITION_Z);
@@ -255,6 +277,7 @@ void init() {
 	mousePosition.y = 0.0f;
 }
 
+// 绘制方块
 void drawCube(Cube cube, bool isPlayer) {
 	// 计算出方块的八个顶点坐标
 	Vertex vertexes[8];
@@ -348,6 +371,7 @@ void drawCube(Cube cube, bool isPlayer) {
 	}
 }
 
+// 绘制迷宫
 void drawMaze(Map map) {
 	Cube cube;
 	cube.size = MAP_BLOCK_LENGTH;
@@ -363,6 +387,68 @@ void drawMaze(Map map) {
 	}
 }
 
+// 绘制恭喜图案
+void drawCongratulation() {
+	// 视窗
+	GLint viewPort[4];
+	// modelView 矩阵
+	GLdouble modelView[16];
+	// projection 矩阵
+	GLdouble projection[16];
+
+	// 进行获取
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+	// 用于存储转换前二维坐标的变量
+	Vector2d pointOld[4];
+	// 转换后坐标
+	Vector3d pointNew[4];
+
+	// 定义要展示通关图片的位置
+	pointOld[0].x = WINDOW_SIZE_WIDTH / 4;
+	pointOld[0].y = WINDOW_SIZE_HEIGHT / 4;
+	pointOld[1].x = WINDOW_SIZE_WIDTH / 4;
+	pointOld[1].y = WINDOW_SIZE_HEIGHT / 4 * 3;
+	pointOld[2].x = WINDOW_SIZE_WIDTH / 4 * 3;
+	pointOld[2].y = WINDOW_SIZE_HEIGHT / 4 * 3;
+	pointOld[3].x = WINDOW_SIZE_WIDTH / 4 * 3;
+	pointOld[3].y = WINDOW_SIZE_HEIGHT / 4;
+
+	// 对每一个坐标进行转换
+	for (int i = 0; i < 4; i++) {
+		gluUnProject(pointOld[i].x, pointOld[i].y, 0.1, modelView, projection, viewPort, &pointNew[i].x, &pointNew[i].y, &pointNew[i].z);
+	}
+
+	// 使用白色
+	glColor3f(white.r, white.g, white.b);
+	// 使用特定材质
+	glMaterialfv(GL_FRONT, GL_AMBIENT, completeMaterial.ambient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, completeMaterial.diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, completeMaterial.specular);
+	glMaterialfv(GL_FRONT, GL_EMISSION, completeMaterial.emission);
+	glMaterialfv(GL_FRONT, GL_SHININESS, &completeMaterial.shininess);
+	
+	// 开始绘制
+	// 启用贴图
+	glEnable(GL_TEXTURE_2D);
+	// 绑定贴图
+	glBindTexture(GL_TEXTURE_2D, complete.id);
+
+	// 开始绘制
+	glBegin(GL_POLYGON);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(pointNew[0].x, pointNew[0].y, pointNew[0].z);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(pointNew[1].x, pointNew[1].y, pointNew[1].z);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(pointNew[2].x, pointNew[2].y, pointNew[2].z);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(pointNew[3].x, pointNew[3].y, pointNew[3].z);
+	glEnd();
+
+	// 关闭贴图
+	glDisable(GL_TEXTURE_2D);
+}
+
+// 渲染函数
 void render() {
 	// 清空颜色缓存和深度缓存
 	glClearColor(gray.r, gray.g, gray.b, 0);
@@ -395,6 +481,7 @@ void render() {
 	}
 
 	loadTexture(wall);
+	loadTexture(complete);
 
 	// 设置光照
 	glLightfv(GL_LIGHT0, GL_POSITION, sunLight.position);
@@ -419,10 +506,16 @@ void render() {
 	playerCube.size = PLAYER_CUBE_SIZE;
 	drawCube(playerCube, true);
 
+	// 如果玩家到达终点
+	if (player.x == endPosition.x && player.y == endPosition.y) {
+		drawCongratulation();
+	}
+
 	// 交换前后台缓存
 	glutSwapBuffers();
 }
 
+// 键盘按键监听
 void onSpecialKeyDown(int key, int x, int y) {
 	switch (key) {
 		case GLUT_KEY_F1:
