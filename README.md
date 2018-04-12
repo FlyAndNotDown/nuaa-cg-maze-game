@@ -7,7 +7,7 @@
 ```
 git clone https://github.com/FlyAndNotDown/MazeGame.git
 ```
-接着，配置 glut 和 glew，Windows 可以参见本人的博客中的配置方法：[glut 和 glew 的配置 -- Kindem's Blog](http://www.kindemh.cn/post/4/)，接着还需要配置OpenCV，最后在 Visual Studio 中打开， Enjoy Game!
+接着，配置 glut 和 glew，最后在 Visual Studio 中打开， Enjoy Game!
 
 ## 操作说明
 F1 切换第一人称视角
